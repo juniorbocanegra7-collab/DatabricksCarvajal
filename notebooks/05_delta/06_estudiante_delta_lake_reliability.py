@@ -477,15 +477,54 @@
 # MAGIC
 # MAGIC Elige una tabla lab, ejecuta `DESCRIBE HISTORY` e identifica:
 # MAGIC
-# MAGIC - versión inicial;
-# MAGIC - última versión;
-# MAGIC - última operación;
-# MAGIC - evidencia más importante.
+# MAGIC - versión inicial; 0
+# MAGIC - última versión; 2
+# MAGIC - última operación RESTORE
+# MAGIC - evidencia más importante; Delta Lake registró todas las operaciones realizadas sobre la tabla (CREATE TABLE AS SELECT, UPDATE y RESTORE), permitiendo auditar cambios, consultar versiones anteriores mediante Time Travel y recuperar el estado original de los datos.
 # MAGIC
 # MAGIC ## Reto Nivel 2 — Time Travel y comparación
 # MAGIC
 # MAGIC Consulta una versión anterior con `VERSION AS OF`, compárala contra la versión actual y explica qué cambió.
 # MAGIC
+# MAGIC Se consultó la versión 0 mediante VERSION AS OF 0 y se comparó con la versión actual. Se observó un cambio controlado en el campo order_status de una orden de laboratorio. Posteriormente se ejecutó un RESTORE, por lo que la tabla regresó a su estado original. Esto demuestra las capacidades de Time Travel y recuperación de Delta Lake.
+# MAGIC
 # MAGIC ## Reto consultor — Checklist pre-Gold
 # MAGIC
-# MAGIC Entrega el checklist de confiabilidad para una tabla que podría alimentar Gold en la Sesión 7.
+# MAGIC Tabla: workspace.delta_lab.orders_reliability_lab
+# MAGIC
+# MAGIC Propósito analítico:
+# MAGIC Análisis de pedidos y desempeño de entregas.
+# MAGIC
+# MAGIC Última versión revisada:
+# MAGIC 2
+# MAGIC
+# MAGIC Operaciones recientes:
+# MAGIC CREATE TABLE AS SELECT, UPDATE y RESTORE.
+# MAGIC
+# MAGIC Riesgos detectados:
+# MAGIC No se identificaron problemas de integridad. Se recomienda mantener monitoreo sobre cambios manuales.
+# MAGIC
+# MAGIC ¿Puede alimentar Gold?:
+# MAGIC Sí.
+# MAGIC
+# MAGIC Evidencia SQL usada:
+# MAGIC DESCRIBE HISTORY, VERSION AS OF 0 y RESTORE TABLE.
+# MAGIC
+# MAGIC Recomendación:
+# MAGIC La tabla cuenta con trazabilidad mediante Delta Lake y puede utilizarse como fuente para la capa Gold.
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC SELECT *
+# MAGIC FROM workspace.delta_lab.orders_reliability_lab VERSION AS OF 0
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ######Se realizó una actualización controlada sobre una orden de laboratorio, cambiando el valor de order_status de delivered a canceled. Gracias a Time Travel fue posible consultar la versión original y comparar ambos estados.#######
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC DESCRIBE HISTORY workspace.delta_lab.orders_reliability_lab;
